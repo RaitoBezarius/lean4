@@ -66,7 +66,7 @@ let
       sha256 = "sha256-DlP3O2mMAIXV7XwcZFHpa4Vp/9cxxtu9O+gQUW8MddA=";
   };
   lean-vscode = vscode-with-extensions.override {
-    vscodeExtensions = [ vscode-lean4 ];
+    vscodeExtensions = [ vscode-lean4 vscode-extensions.vscodevim.vim ];
   };
   lean-mdbook = mdbook.overrideAttrs (drv: rec {
     name = "lean-${mdbook.name}";
