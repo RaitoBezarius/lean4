@@ -1,5 +1,5 @@
 # used for `nix-shell https://github.com/leanprover/lean4/archive/master.tar.gz -A nix`
-{ nix = (import ./shell.nix {}).nix; } //
+# { nix = (import ./shell.nix {}).nix; } //
 (import (
   let
     lock = builtins.fromJSON (builtins.readFile ./flake.lock);
