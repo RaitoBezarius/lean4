@@ -158,7 +158,7 @@ in rec {
     ${leanc}/bin/leanc -x none ${staticLib}/* ${lib.concatStringsSep " " (map (d: "${d}/*.a") allStaticLibDeps)} -o $out/bin/${executableName}
   '';
 
-  pkgs = {
+  pkgs = rec {
     modRoot   = depRoot name [ mods.${name} ];
     lean-package = writeShellScriptBin "lean" ''
       LEAN_PATH=${modRoot}:$LEAN_PATH LEAN_SRC_PATH=${src}:$LEAN_SRC_PATH ${lean-final}/bin/lean "$@"
