@@ -1,6 +1,10 @@
 {
   description = "Lean interactive theorem prover";
 
+  inputs.flake-compat = {
+    url = "github:edolstra/flake-compat";
+    flake = false;
+  };
   inputs.nixpkgs.url = github:NixOS/nixpkgs/nixpkgs-unstable;
   # HACK: remove when ccache(?) works with nixpkgs master again
   inputs.nixpkgs-vscode.url = github:NixOS/nixpkgs/nixpkgs-unstable;
@@ -24,7 +28,7 @@
     inputs.mdBook.follows = "mdBook";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-vscode, flake-utils, temci, nix, mdBook, lean-stage0 }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, nixpkgs-vscode, flake-utils, temci, nix, mdBook, lean-stage0, ... }: flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs-vscode = import nixpkgs-vscode {
         inherit system;
