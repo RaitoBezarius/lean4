@@ -139,7 +139,6 @@ with builtins; let
   mods      = buildModAndDeps name {};
 in rec {
   inherit name lean deps staticLibDeps allExternalDeps print-lean-deps src mods;
-  modRoot   = depRoot name [ mods.${name} ];
   cTree     = symlinkJoin { name = "${name}-cTree"; paths = map (mod: mod.c) (attrValues mods); };
   objects   = mapAttrs compileMod mods;
   oTree     = symlinkJoin { name = "${name}-oTree"; paths = (attrValues objects); };
@@ -159,33 +158,36 @@ in rec {
     ${leanc}/bin/leanc -x none ${staticLib}/* ${lib.concatStringsSep " " (map (d: "${d}/*.a") allStaticLibDeps)} -o $out/bin/${executableName}
   '';
 
-  lean-package = writeShellScriptBin "lean" ''
-    LEAN_PATH=${modRoot}:$LEAN_PATH LEAN_SRC_PATH=${src}:$LEAN_SRC_PATH ${lean-final}/bin/lean "$@"
-  '';
-  emacs-package = makeEmacsWrapper "emacs-package" lean-package;
-  vscode-package = makeVSCodeWrapper "vscode-package" lean-package;
+  pkgs = {
+    modRoot   = depRoot name [ mods.${name} ];
+    lean-package = writeShellScriptBin "lean" ''
+      LEAN_PATH=${modRoot}:$LEAN_PATH LEAN_SRC_PATH=${src}:$LEAN_SRC_PATH ${lean-final}/bin/lean "$@"
+    '';
+    emacs-package = makeEmacsWrapper "emacs-package" lean-package;
+    vscode-package = makeVSCodeWrapper "vscode-package" lean-package;
 
-  print-paths = makePrintPathsFor [] (mods // externalModMap);
-  # `lean` wrapper that dynamically runs Nix for the actual `lean` executable so the same editor can be
-  # used for multiple projects/after upgrading the `lean` input/for editing both stage 1 and the tests
-  lean-bin-dev = substituteAll {
-    name = "lean";
-    dir = "bin";
-    src = ./lean-dev.in;
-    isExecutable = true;
-    srcRoot = fullSrc;  # use root flake.nix in case of Lean repo
-    inherit bash nix srcTarget srcArgs;
+    print-paths = makePrintPathsFor [] (mods // externalModMap);
+    # `lean` wrapper that dynamically runs Nix for the actual `lean` executable so the same editor can be
+    # used for multiple projects/after upgrading the `lean` input/for editing both stage 1 and the tests
+    lean-bin-dev = substituteAll {
+      name = "lean";
+      dir = "bin";
+      src = ./lean-dev.in;
+      isExecutable = true;
+      srcRoot = fullSrc;  # use root flake.nix in case of Lean repo
+      inherit bash nix srcTarget srcArgs;
+    };
+    leanpkg-dev = substituteAll {
+      name = "leanpkg";
+      dir = "bin";
+      src = ./leanpkg-dev.in;
+      isExecutable = true;
+      srcRoot = fullSrc;  # use root flake.nix in case of Lean repo
+      inherit bash nix srcTarget srcArgs;
+      leanpkg = lean;
+    };
+    lean-dev = symlinkJoin { name = "lean-dev"; paths = [ lean-bin-dev leanpkg-dev ]; };
+    emacs-dev = makeEmacsWrapper "emacs-dev" lean-dev;
+    vscode-dev = makeVSCodeWrapper "vscode-dev" lean-dev;
   };
-  leanpkg-dev = substituteAll {
-    name = "leanpkg";
-    dir = "bin";
-    src = ./leanpkg-dev.in;
-    isExecutable = true;
-    srcRoot = fullSrc;  # use root flake.nix in case of Lean repo
-    inherit bash nix srcTarget srcArgs;
-    leanpkg = lean;
-  };
-  lean-dev = symlinkJoin { name = "lean-dev"; paths = [ lean-bin-dev leanpkg-dev ]; };
-  emacs-dev = makeEmacsWrapper "emacs-dev" lean-dev;
-  vscode-dev = makeVSCodeWrapper "vscode-dev" lean-dev;
 }
