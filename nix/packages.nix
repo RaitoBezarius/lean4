@@ -101,7 +101,7 @@ let
     dontInstall = true;
   };
 in {
-  inherit cc lean4-mode buildLeanPackage llvmPackages;
+  inherit cc lean4-mode lean-vscode buildLeanPackage llvmPackages;
   lean = lean.stage1;
   stage0print-paths = lean.stage1.Leanpkg.print-paths;
   HEAD-as-stage0 = (lean.stage1.Lean.overrideArgs { srcTarget = "..#stage0-from-input.stage0"; srcArgs = "(--override-input lean-stage0 ..\?rev=$(git rev-parse HEAD) -- -Dinterpreter.prefer_native=false \"$@\")"; });
