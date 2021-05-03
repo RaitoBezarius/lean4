@@ -137,8 +137,9 @@ with builtins; let
   '';
   makePrintPathsFor = deps: mods: printPaths deps // mapAttrs (_: mod: makePrintPathsFor (deps ++ [mod]) mods) mods;
   mods      = buildModAndDeps name {};
+  modRoot   = depRoot name [ mods.${name} ];
 in rec {
-  inherit name lean deps staticLibDeps allExternalDeps print-lean-deps src mods;
+  inherit name lean deps staticLibDeps allExternalDeps print-lean-deps src mods modRoot;
   cTree     = symlinkJoin { name = "${name}-cTree"; paths = map (mod: mod.c) (attrValues mods); };
   objects   = mapAttrs compileMod mods;
   oTree     = symlinkJoin { name = "${name}-oTree"; paths = (attrValues objects); };
@@ -159,7 +160,7 @@ in rec {
   '';
 
   pkgs = rec {
-    modRoot   = depRoot name [ mods.${name} ];
+    inherit modRoot;
     lean-package = writeShellScriptBin "lean" ''
       LEAN_PATH=${modRoot}:$LEAN_PATH LEAN_SRC_PATH=${src}:$LEAN_SRC_PATH ${lean-final}/bin/lean "$@"
     '';
